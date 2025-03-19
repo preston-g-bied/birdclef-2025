@@ -38,14 +38,14 @@ The competition aims to develop machine learning models to identify species base
 
 1. Clone this repository
 
-```
+```bash
 git clone https://github.com/preston-g-bied/birdclef-2025.git
 cd birdclef-2025
 ```
 
 2. Set up the environment
 
-```
+```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -53,35 +53,33 @@ pip install -r requirements.txt
 
 ### Data Setup
 
-1. Download competition data from Kaggle
+Download competition data from Kaggle
 
-```
+```bash
 kaggle competitions download -c birdclef-2025
 unzip birdclef-2025.zip -d data/raw/
 ```
 
-2. Process the data
+## Baseline Model
 
-```
-python src/data/make_dataset.py
-```
+This repository includes a baseline CNN model for multi-species audio classification:
 
-## Usage
+### Model Architecture
+- Simple CNN with 5 convolutional blocks
+- Global average pooling and fully connected classification layer
+- Multi-label classification with BCE loss
 
-1. Feature extraction
+### Training the Model
 
-```
-python src/features/build_features.py
-```
+To train the baseline model:
 
-2. Train the model
+```bash
+# Train on fold 0 with default settings
+python src/models/train_model.py --config configs/config.yaml --fold 0
 
-```
-python src/models/train_model.py
-```
+# Run with debugging on a small dataset
+python src/models/train_model.py --config configs/config.yaml --debug
 
-3. Generate predictions
-
-```
-python src/models/predict_model.py
+# Train without Weights & Biases logging
+python src/models/train_model.py --config configs/config.yaml --no_wandb
 ```
