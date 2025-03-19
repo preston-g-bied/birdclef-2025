@@ -1,0 +1,27 @@
+# Main configuration file
+project:
+  name: BirdCLEF+ 2025
+  description: Multi-species acoustic monitoring in El Silencio Natural Reserve, Colombia
+
+paths:
+  data:
+    raw: data/raw/
+    processed: data/processed/
+    interim: data/interim/
+  models: outputs/models/
+  submissions: outputs/submissions/
+
+audio:
+  sample_rate: 32000  # Competition uses 32 kHz
+  audio_length: 5  # 5-second segments for evaluation
+  n_mels: 128
+  n_fft: 1024
+  hop_length: 512
+
+training:
+  seed: 42
+  batch_size: 32
+  num_epochs: 30
+  learning_rate: 0.001
+  patience: 5
+  num_workers: 4
