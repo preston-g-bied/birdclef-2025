@@ -32,6 +32,46 @@ from src.models.efficientnet_model import EfficientNetAudio
 from src.models.attention_cnn import AttentionCNN
 from src.utils.metrics import calculate_lwlrap, macro_roc_auc, calculate_per_class_metrics
 
+# advanced
+class AdvancedBirdCLEFDataset(BirdCLEFDataset):
+    def __init__(self, df, audio_dir, sr=32000, duration=5, transforms=None,
+                 target_columns=None, is_train=True, taxonomy_path=None,
+                 taxonomic=False, config=None):
+        super().__init__(df, audio_dir, sr, duration, transforms,
+                         target_columns, is_train, taxonomy_path)
+        self.taxonomic = taxonomic
+        self.config = config
+        
+    def __getitem__(self, idx):
+        result = super().__getitem__(idx)
+        
+        # If using taxonomic-specific features, replace mel_spec
+        if self.taxonomic:
+            class_name = result['class_name']
+            audio = result['audio'].numpy()
+            mel_spec = extract_spectral_contrast_mel(
+                audio,
+                sr=self.sr,
+                n_mels=self.config['audio']['n_mels'] if self.config else 128,
+                class_name=class_name
+            )
+            result['mel_spec'] = torch.FloatTensor(mel_spec)
+            
+        # Ensure consistent dimensions
+        if isinstance(result['mel_spec'], torch.Tensor):
+            target_time_dim = 400
+            current_shape = result['mel_spec'].shape
+            
+            if current_shape[1] > target_time_dim:
+                # Truncate if longer
+                result['mel_spec'] = result['mel_spec'][:, :target_time_dim]
+            elif current_shape[1] < target_time_dim:
+                # Pad with zeros if shorter
+                padding = torch.zeros(current_shape[0], target_time_dim - current_shape[1])
+                result['mel_spec'] = torch.cat([result['mel_spec'], padding], dim=1)
+                
+        return result
+
 def seed_everything(seed):
     """Set seeds for reproducability."""
     random.seed(seed)
@@ -177,40 +217,6 @@ def prepare_data(config, fold=0, debug=False, taxonomic=False):
         sr = config['audio']['sample_rate'],
         soundscapes_path = soundscapes_path
     )
-
-    # create custom dataset class with advanced features
-    class AdvancedBirdCLEFDataset(BirdCLEFDataset):
-        def __getitem__(self, idx):
-            result = super().__getitem__(idx)
-
-            # if using taxonomic-specific features, replace mel_spec
-            if taxonomic:
-                class_name = result['class_name']
-                audio = result['audio'].numpy()
-                mel_spec = extract_spectral_contrast_mel(
-                    audio,
-                    sr = self.sr,
-                    n_mels = config['audio']['n_mels'],
-                    class_name = class_name
-                )
-                result['mel_spec'] = torch.FloatTensor(mel_spec)
-
-            # Ensure consistent dimensions - add this code
-            if isinstance(result['mel_spec'], torch.Tensor):
-                # Target time dimension (you can adjust this value)
-                target_time_dim = 400
-                current_shape = result['mel_spec'].shape
-        
-                # Handle time dimension (assuming shape is [freq_bins, time_steps])
-                if current_shape[1] > target_time_dim:
-                    # Truncate if longer
-                    result['mel_spec'] = result['mel_spec'][:, :target_time_dim]
-                elif current_shape[1] < target_time_dim:
-                    # Pad with zeros if shorter
-                    padding = torch.zeros(current_shape[0], target_time_dim - current_shape[1])
-                    result['mel_spec'] = torch.cat([result['mel_spec'], padding], dim=1)
-
-            return result
         
     # create datasets
     train_dataset = AdvancedBirdCLEFDataset(
