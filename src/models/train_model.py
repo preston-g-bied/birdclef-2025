@@ -18,6 +18,8 @@ from tqdm import tqdm
 import wandb
 from sklearn.model_selection import StratifiedKFold
 import audiomentations
+import warnings
+warnings.filterwarnings('ignore')
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -254,7 +256,7 @@ def train_model(config, fold=0, debug=False, use_wandb=True):
 
     # learning rate scheduler
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', factor=0.5, patience=3, verbose=True
+        optimizer, mode='min', factor=0.5, patience=3
     )
 
     # initialize wandb if enabled

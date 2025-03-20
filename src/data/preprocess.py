@@ -4,7 +4,7 @@ import audiomentations
 
 def load_audio(file_path, sr=32000, mono=True):
     """Load an audio file with consistent parameters."""
-    audio, _ = librosa.load(file_path, sr=sr, mono=mono)
+    audio, _ = librosa.load(file_path, sr=sr, mono=mono, dtype=np.float32)
     return audio
 
 def trim_audio(audio, top_db=20):
