@@ -30,7 +30,7 @@ class AttentionCNN(nn.Module):
         self.se1 = SEBlock(32)
 
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.bn2 = nn.BatchNorm1d(64)
+        self.bn2 = nn.BatchNorm2d(64)
         self.se2 = SEBlock(64)
 
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
