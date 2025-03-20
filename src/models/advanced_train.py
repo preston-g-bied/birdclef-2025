@@ -31,6 +31,7 @@ from src.features.advanced_features import extract_spectral_contrast_mel
 from src.models.efficientnet_model import EfficientNetAudio
 from src.models.attention_cnn import AttentionCNN
 from src.utils.metrics import calculate_lwlrap, macro_roc_auc, calculate_per_class_metrics
+from src.data.cached_dataset import CachedAdvancedBirdCLEFDataset
 
 # advanced
 class AdvancedBirdCLEFDataset(BirdCLEFDataset):
@@ -217,27 +218,66 @@ def prepare_data(config, fold=0, debug=False, taxonomic=False):
         sr = config['audio']['sample_rate'],
         soundscapes_path = soundscapes_path
     )
-        
-    # create datasets
-    train_dataset = AdvancedBirdCLEFDataset(
-        train_data,
-        os.path.join(config['paths']['data']['raw'], 'train_audio'),
-        sr = config['audio']['sample_rate'],
-        duration = config['audio']['audio_length'],
-        transforms = augment,
-        is_train = True,
-        taxonomy_path = os.path.join(config['paths']['data']['raw'], 'taxonomy.csv')
-    )
 
-    val_dataset = AdvancedBirdCLEFDataset(
-        val_data,
-        os.path.join(config['paths']['data']['raw'], 'train_audio'),
-        sr = config['audio']['sample_rate'],
-        duration = config['audio']['audio_length'],
-        transforms = None,
-        is_train = False,
-        taxonomy_path = os.path.join(config['paths']['data']['raw'], 'taxonomy.csv')
-    )
+    # check if cache exists
+    cache_mode = 'audio'
+    cache_dir = Path(f'data/processed/{cache_mode}_cache')
+
+    if not cache_dir.exists():
+        print(f'Cache directory {cache_dir} not found')
+        print(f"Please run: python scripts/cache_features.py --mode {cache_mode} first")
+        print("Falling back to non-cached dataset...")
+        
+        # fall back to original datasets
+        train_dataset = AdvancedBirdCLEFDataset(
+            train_data,
+            os.path.join(config['paths']['data']['raw'], 'train_audio'),
+            sr = config['audio']['sample_rate'],
+            duration = config['audio']['audio_length'],
+            transforms = augment,
+            is_train = True,
+            taxonomy_path = os.path.join(config['paths']['data']['raw'], 'taxonomy.csv')
+        )
+
+        val_dataset = AdvancedBirdCLEFDataset(
+            val_data,
+            os.path.join(config['paths']['data']['raw'], 'train_audio'),
+            sr = config['audio']['sample_rate'],
+            duration = config['audio']['audio_length'],
+            transforms = None,
+            is_train = False,
+            taxonomy_path = os.path.join(config['paths']['data']['raw'], 'taxonomy.csv')
+        )
+
+    else:
+        print(f'Using cached {cache_mode} data from {cache_dir}')
+
+        # used cached dataset implementation
+        train_dataset = CachedAdvancedBirdCLEFDataset(
+            train_data,
+            cache_dir = cache_dir,
+            sr = config['audio']['sample_rate'],
+            duration = config['audio']['audio_length'],
+            transforms = augment,
+            is_train = True,
+            taxonomy_path = os.path.join(config['paths']['data']['raw'], 'taxonomy.csv'),
+            taxonomic = taxonomic,
+            config = config,
+            cache_mode = cache_mode
+        )
+
+        val_dataset = CachedAdvancedBirdCLEFDataset(
+            val_data,
+            cache_dir = cache_dir,
+            sr = config['audio']['sample_rate'],
+            duration = config['audio']['audio_length'],
+            transforms = None,
+            is_train = False,
+            taxonomy_path = os.path.join(config['paths']['data']['raw'], 'taxonomy.csv'),
+            taxonomic = taxonomic,
+            config = config,
+            cache_mode = cache_mode
+        )
 
     # create weighted sampler to address class imbalance
     if taxonomic:
