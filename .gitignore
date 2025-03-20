@@ -110,9 +110,9 @@ docs/_build/
 docs/site/
 
 # Results directory from training scripts
-results/
-results/*/
-results/first_round/
+outputs/results/
+outputs/results/*/
+outputs/results/first_round/
 *.csv
 !configs/*.csv  # Keep CSV files in the configs directory
 
