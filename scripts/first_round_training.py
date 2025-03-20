@@ -41,7 +41,7 @@ def parse_args():
                         help='Run in debug mode with a small dataset and fewer folds')
     parser.add_argument('--no_wandb', action='store_true',
                         help='Disable wandb logging')
-    parser.add_argument('--output_dir', type=str, default='results/first_round',
+    parser.add_argument('--output_dir', type=str, default='outputs/results/first_round',
                         help='Directory to save results summary')
     return parser.parse_args()
 
