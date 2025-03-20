@@ -108,3 +108,26 @@ temp/
 # Documentation builds
 docs/_build/
 docs/site/
+
+# Results directory from training scripts
+results/
+results/*/
+results/first_round/
+*.csv
+!configs/*.csv  # Keep CSV files in the configs directory
+
+# Additional model files
+**/checkpoints/
+*.pth.tar
+*.state
+model_best.*
+
+# Experiment tracking
+**/wandb/
+**/mlruns/
+**/tensorboard/
+
+# Script-generated temporary files
+*_temp/
+*_tmp/
+temp_*
