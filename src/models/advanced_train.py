@@ -479,7 +479,7 @@ def advanced_training(config, args):
             weight_decay=float(config['training'].get('weight_decay', 1e-4))
         )
     
-    # ;earning rate scheduler
+    # learning rate scheduler
     if config['training'].get('scheduler', 'reduce_on_plateau') == 'one_cycle':
         print("Using OneCycleLR scheduler")
         scheduler = optim.lr_scheduler.OneCycleLR(
